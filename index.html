@@ -1,72 +1,728 @@
-<?php
-$logFile = 'sms_log.txt';
-$maxMessages = 20; // 最多显示的消息数量
-
-// 处理清空日志的请求
-if (isset($_POST['clear_log'])) {
-    file_put_contents($logFile, '');
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    exit;
-}
-
-// 如果收到GET请求
-if (!empty($_GET['content'])) {
-    $timestamp = date('Y-m-d H:i:s');
-    $content = $_GET['content'];
-    $logEntry = "$timestamp|$content\n";
-    file_put_contents($logFile, $logEntry, FILE_APPEND);
-}
-
-// 读取日志文件
-$messages = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$messages = array_reverse($messages);
-$messages = array_slice($messages, 0, $maxMessages);
-?>
-
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; }
-        .message { background-color: white; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
-        .time { color: #333; }
-        .sender {color: #333;  }
-        .content { color: #333; }
-        .button-container { margin-top: 20px; }
-        button { padding: 10px 20px; margin-right: 10px; }
-    </style>
-    <script>
-        function refreshPage() {
-            location.reload();
-        }
-        function confirmClear() {
-            return confirm("确定要清空所有日志吗？");
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎮 经典小游戏合集</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-hub {
+      max-width: 1400px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border-radius: 48px;
+      padding: 30px 25px 40px;
+      box-shadow: 0 30px 45px -20px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2.4rem;
+      letter-spacing: 1px;
+      color: #f0f9ff;
+      text-shadow: 0 4px 12px rgba(0,20,30,0.6);
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    h1 span {
+      background: rgba(255,215,0,0.15);
+      padding: 4px 18px;
+      border-radius: 60px;
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #fcd34d;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      justify-content: center;
+    }
+    .game-card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 36px;
+      padding: 18px 16px 24px;
+      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.04);
+      transition: transform 0.2s ease, box-shadow 0.25s;
+      border: 1px solid rgba(255,255,255,0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .game-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 22px 40px -12px #000000cc;
+      border-color: rgba(255,255,255,0.08);
+    }
+    .game-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .game-title i {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .canvas-wrapper {
+      background: #0b1120;
+      border-radius: 24px;
+      padding: 8px;
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px #3b4b62;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .canvas-wrapper canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      background: #0b1120;
+      border-radius: 18px;
+      image-rendering: pixelated; 
+      image-rendering: crisp-edges;
+    }
+    .game-controls {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .btn {
+      background: #334155;
+      border: none;
+      border-radius: 60px;
+      padding: 8px 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #f1f5f9;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0f172a, 0 6px 12px rgba(0,0,0,0.3);
+      transition: all 0.08s linear;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #4b5b72;
+      letter-spacing: 0.3px;
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0px 0 #0f172a, 0 6px 12px rgba(0,0,0,0.4);
+    }
+    .btn-primary {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: white;
+      box-shadow: 0 4px 0 #1e3a8a;
+    }
+    .btn-success {
+      background: #22c55e;
+      border-color: #4ade80;
+      color: #052e16;
+      box-shadow: 0 4px 0 #166534;
+    }
+    .btn-danger {
+      background: #ef4444;
+      border-color: #f87171;
+      color: white;
+      box-shadow: 0 4px 0 #991b1b;
+    }
+    .btn-warning {
+      background: #eab308;
+      border-color: #facc15;
+      color: #422006;
+      box-shadow: 0 4px 0 #854d0e;
+    }
+    .score-badge {
+      background: #0f172a;
+      padding: 4px 18px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-tip {
+      margin-top: 28px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+      border-top: 1px solid #334155;
+      padding-top: 22px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+    }
+    .footer-tip kbd {
+      background: #1e293b;
+      padding: 2px 12px;
+      border-radius: 30px;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      font-family: inherit;
+    }
+    @media (max-width: 640px) {
+      .game-hub { padding: 16px; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Message</h1>
-    <?php foreach ($messages as $message): ?>
-        <?php 
-        list($time, $content) = explode('|', $message, 2);
-        $lines = explode("\n", $content);
-        $sender = $lines[0] ?? '';
-        $messageContent = $lines[1] ?? '';
-        ?>
-        <div class="message">
-            <div class="time"><?= htmlspecialchars($time) ?></div>
-            <div class="sender"><?= htmlspecialchars($sender) ?></div>
-            <div class="content"><?= nl2br(htmlspecialchars($messageContent)) ?></div>
-        </div>
-    <?php endforeach; ?>
-    <div class="button-container">
-        <button onclick="refreshPage()">刷新</button>
-        <form method="post" onsubmit="return confirmClear()" style="display: inline;">
-            <button type="submit" name="clear_log">清空日志</button>
-        </form>
+<div class="game-hub">
+  <h1>
+    🕹️ 经典游乐场
+    <span>4合1</span>
+  </h1>
+
+  <div class="game-grid">
+    <!-- 贪吃蛇 -->
+    <div class="game-card">
+      <div class="game-title"><span>🐍</span> 贪吃蛇</div>
+      <div class="canvas-wrapper">
+        <canvas id="snakeCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="game-controls">
+        <span class="score-badge" id="snakeScore">🍎 0</span>
+        <button class="btn btn-success" id="snakeRestart">↻ 重来</button>
+      </div>
+      <div style="margin-top:6px; font-size:0.75rem; color:#6b7b93;">方向键 / 滑动</div>
     </div>
+
+    <!-- 俄罗斯方块 -->
+    <div class="game-card">
+      <div class="game-title"><span>🧱</span> 俄罗斯方块</div>
+      <div class="canvas-wrapper">
+        <canvas id="tetrisCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="game-controls">
+        <span class="score-badge" id="tetrisScore">⭐ 0</span>
+        <button class="btn btn-primary" id="tetrisRestart">↻ 重来</button>
+      </div>
+      <div style="margin-top:6px; font-size:0.75rem; color:#6b7b93;">←↓→ / 上旋转</div>
+    </div>
+
+    <!-- 谷歌小恐龙 -->
+    <div class="game-card">
+      <div class="game-title"><span>🦕</span> 小恐龙</div>
+      <div class="canvas-wrapper">
+        <canvas id="dinoCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="game-controls">
+        <span class="score-badge" id="dinoScore">🏃 0</span>
+        <button class="btn btn-warning" id="dinoRestart">↻ 重来</button>
+      </div>
+      <div style="margin-top:6px; font-size:0.75rem; color:#6b7b93;">空格 / 点击 跳跃</div>
+    </div>
+
+    <!-- Edge冲浪 (简化版) -->
+    <div class="game-card">
+      <div class="game-title"><span>🏄</span> Edge冲浪</div>
+      <div class="canvas-wrapper">
+        <canvas id="surfCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="game-controls">
+        <span class="score-badge" id="surfScore">🌊 0</span>
+        <button class="btn btn-danger" id="surfRestart">↻ 重来</button>
+      </div>
+      <div style="margin-top:6px; font-size:0.75rem; color:#6b7b93;">← → 移动</div>
+    </div>
+  </div>
+
+  <div class="footer-tip">
+    <span>⬆️⬇️⬅️➡️ 方向键控制</span>
+    <span><kbd>空格</kbd> 跳跃 / 开始</span>
+    <span>📱 触屏友好</span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- 工具函数 -----
+    function getCanvasCtx(id) {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      return { canvas, ctx };
+    }
+
+    // ----- 1. 贪吃蛇 -----
+    (function snakeGame() {
+      const { canvas, ctx } = getCanvasCtx('snakeCanvas');
+      const scoreSpan = document.getElementById('snakeScore');
+      const restartBtn = document.getElementById('snakeRestart');
+
+      const GRID = 20, SIZE = 15; // 15x15 网格
+      let snake, direction, nextDir, food, gameOver, score, frameInterval;
+
+      function init() {
+        snake = [[7, 7], [6, 7], [5, 7]];
+        direction = 'right';
+        nextDir = 'right';
+        food = [12, 7];
+        gameOver = false;
+        score = 0;
+        updateScore();
+        clearInterval(frameInterval);
+        frameInterval = setInterval(update, 140);
+        draw();
+      }
+
+      function updateScore() { scoreSpan.textContent = `🍎 ${score}`; }
+
+      function draw() {
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 300, 300);
+        // 网格线 (淡)
+        ctx.strokeStyle = '#2a3a4e';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= GRID; i++) {
+          ctx.beginPath();
+          ctx.moveTo(i * SIZE, 0);
+          ctx.lineTo(i * SIZE, 300);
+          ctx.stroke();
+          ctx.moveTo(0, i * SIZE);
+          ctx.lineTo(300, i * SIZE);
+          ctx.stroke();
+        }
+        // 蛇
+        snake.forEach((seg, idx) => {
+          ctx.fillStyle = (idx === 0) ? '#4ade80' : '#86efac';
+          ctx.shadowColor = '#a3e635';
+          ctx.shadowBlur = 8;
+          ctx.fillRect(seg[0] * SIZE + 1, seg[1] * SIZE + 1, SIZE-2, SIZE-2);
+        });
+        ctx.shadowBlur = 0;
+        // 食物
+        ctx.fillStyle = '#f87171';
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(food[0] * SIZE + SIZE/2, food[1] * SIZE + SIZE/2, SIZE/2-2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // gameOver
+        if (gameOver) {
+          ctx.fillStyle = '#fef9c3';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.shadowColor = '#000';
+          ctx.shadowBlur = 12;
+          ctx.fillText('💀', 120, 160);
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function update() {
+        if (gameOver) return;
+        direction = nextDir;
+        const head = snake[0];
+        let newHead = [...head];
+        if (direction === 'right') newHead[0] += 1;
+        else if (direction === 'left') newHead[0] -= 1;
+        else if (direction === 'up') newHead[1] -= 1;
+        else if (direction === 'down') newHead[1] += 1;
+
+        // 碰撞检测
+        if (newHead[0] < 0 || newHead[0] >= GRID || newHead[1] < 0 || newHead[1] >= GRID ||
+            snake.some(seg => seg[0] === newHead[0] && seg[1] === newHead[1])) {
+          gameOver = true;
+          clearInterval(frameInterval);
+          draw();
+          return;
+        }
+
+        snake.unshift(newHead);
+        if (newHead[0] === food[0] && newHead[1] === food[1]) {
+          score++;
+          updateScore();
+          generateFood();
+        } else {
+          snake.pop();
+        }
+        draw();
+      }
+
+      function generateFood() {
+        let pos;
+        let attempts = 0;
+        do {
+          pos = [Math.floor(Math.random() * GRID), Math.floor(Math.random() * GRID)];
+          attempts++;
+        } while (snake.some(seg => seg[0] === pos[0] && seg[1] === pos[1]) && attempts < 200);
+        food = pos;
+      }
+
+      function handleKey(e) {
+        const key = e.key;
+        e.preventDefault();
+        if (gameOver) return;
+        if (key === 'ArrowUp' && direction !== 'down') nextDir = 'up';
+        else if (key === 'ArrowDown' && direction !== 'up') nextDir = 'down';
+        else if (key === 'ArrowLeft' && direction !== 'right') nextDir = 'left';
+        else if (key === 'ArrowRight' && direction !== 'left') nextDir = 'right';
+      }
+
+      window.addEventListener('keydown', (e) => {
+        if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+          handleKey(e);
+        }
+      });
+
+      restartBtn.addEventListener('click', () => { clearInterval(frameInterval); init(); });
+      init();
+    })();
+
+    // ----- 2. 俄罗斯方块 (简化) -----
+    (function tetrisGame() {
+      const { canvas, ctx } = getCanvasCtx('tetrisCanvas');
+      const scoreSpan = document.getElementById('tetrisScore');
+      const restartBtn = document.getElementById('tetrisRestart');
+
+      const COLS = 10, ROWS = 20, BLOCK = 15;
+      let board, currentPiece, gameOver, score, fallInterval;
+
+      const PIECES = [
+        [[1,1,1,1]],
+        [[1,1],[1,1]],
+        [[0,1,0],[1,1,1]],
+        [[1,0,0],[1,1,1]],
+        [[0,0,1],[1,1,1]],
+        [[0,1,1],[1,1,0]],
+        [[1,1,0],[0,1,1]]
+      ];
+
+      function init() {
+        board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        gameOver = false;
+        score = 0;
+        updateScore();
+        clearInterval(fallInterval);
+        spawnPiece();
+        fallInterval = setInterval(() => { if (!gameOver) { movePiece(0, 1); } }, 300);
+        draw();
+      }
+
+      function spawnPiece() {
+        const idx = Math.floor(Math.random() * PIECES.length);
+        currentPiece = {
+          shape: PIECES[idx].map(row => [...row]),
+          x: Math.floor((COLS - PIECES[idx][0].length) / 2),
+          y: 0
+        };
+        if (collision(currentPiece.shape, currentPiece.x, currentPiece.y)) {
+          gameOver = true;
+          clearInterval(fallInterval);
+        }
+      }
+
+      function collision(shape, offX, offY) {
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[0].length; c++) {
+            if (shape[r][c] !== 0) {
+              const boardX = offX + c, boardY = offY + r;
+              if (boardX < 0 || boardX >= COLS || boardY >= ROWS || boardY < 0 || board[boardY][boardX] !== 0) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function mergePiece() {
+        const { shape, x, y } = currentPiece;
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[0].length; c++) {
+            if (shape[r][c] !== 0) {
+              const boardY = y + r;
+              if (boardY >= 0) board[boardY][x + c] = 1;
+            }
+          }
+        }
+        clearRows();
+        spawnPiece();
+        draw();
+      }
+
+      function clearRows() {
+        let cleared = 0;
+        for (let row = ROWS-1; row >= 0; ) {
+          if (board[row].every(cell => cell !== 0)) {
+            board.splice(row, 1);
+            board.unshift(Array(COLS).fill(0));
+            cleared++;
+          } else row--;
+        }
+        if (cleared > 0) {
+          score += cleared * 10;
+          updateScore();
+        }
+      }
+
+      function movePiece(dx, dy) {
+        if (gameOver) return;
+        const { shape, x, y } = currentPiece;
+        if (!collision(shape, x + dx, y + dy)) {
+          currentPiece.x += dx;
+          currentPiece.y += dy;
+          draw();
+        } else if (dy === 1) {
+          mergePiece();
+        }
+      }
+
+      function rotatePiece() {
+        if (gameOver) return;
+        const oldShape = currentPiece.shape;
+        const rotated = oldShape[0].map((_, idx) => oldShape.map(row => row[idx]).reverse());
+        if (!collision(rotated, currentPiece.x, currentPiece.y)) {
+          currentPiece.shape = rotated;
+          draw();
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.fillStyle = '#0b1120';
+        ctx.fillRect(0, 0, 300, 300);
+        // 网格
+        for (let row = 0; row < ROWS; row++) {
+          for (let col = 0; col < COLS; col++) {
+            if (board[row][col] !== 0) {
+              ctx.fillStyle = '#38bdf8';
+              ctx.shadowBlur = 6; ctx.shadowColor = '#0ea5e9';
+              ctx.fillRect(col * BLOCK + 1, row * BLOCK + 1, BLOCK-2, BLOCK-2);
+            }
+          }
+        }
+        // 当前方块
+        if (currentPiece && !gameOver) {
+          const { shape, x, y } = currentPiece;
+          for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[0].length; c++) {
+              if (shape[r][c] !== 0) {
+                ctx.fillStyle = '#fbbf24';
+                ctx.shadowBlur = 10; ctx.shadowColor = '#f59e0b';
+                ctx.fillRect((x + c) * BLOCK + 1, (y + r) * BLOCK + 1, BLOCK-2, BLOCK-2);
+              }
+            }
+          }
+        }
+        ctx.shadowBlur = 0;
+        if (gameOver) {
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = 'bold 22px sans-serif';
+          ctx.fillText('💀', 120, 160);
+        }
+      }
+
+      function updateScore() { scoreSpan.textContent = `⭐ ${score}`; }
+
+      window.addEventListener('keydown', (e) => {
+        if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+          if (e.key === 'ArrowLeft') movePiece(-1, 0);
+          else if (e.key === 'ArrowRight') movePiece(1, 0);
+          else if (e.key === 'ArrowDown') movePiece(0, 1);
+          else if (e.key === 'ArrowUp') rotatePiece();
+        }
+      });
+
+      restartBtn.addEventListener('click', () => { clearInterval(fallInterval); init(); });
+      init();
+    })();
+
+    // ----- 3. 谷歌小恐龙 (简化) -----
+    (function dinoGame() {
+      const { canvas, ctx } = getCanvasCtx('dinoCanvas');
+      const scoreSpan = document.getElementById('dinoScore');
+      const restartBtn = document.getElementById('dinoRestart');
+
+      let dinoY, velocity, gravity, jumpPower, cactusX, gameOver, score, gameInterval;
+
+      function init() {
+        dinoY = 230; velocity = 0; gravity = 0.6; jumpPower = -10;
+        cactusX = 280; gameOver = false; score = 0;
+        updateScore();
+        clearInterval(gameInterval);
+        gameInterval = setInterval(update, 30);
+        draw();
+      }
+
+      function update() {
+        if (gameOver) return;
+        // 重力
+        velocity += gravity;
+        dinoY += velocity;
+        if (dinoY > 230) { dinoY = 230; velocity = 0; }
+        // 仙人掌
+        cactusX -= 3.5;
+        if (cactusX < -20) { cactusX = 280; score++; updateScore(); }
+        // 碰撞检测
+        if (cactusX < 45 && cactusX > 15 && dinoY > 200) {
+          gameOver = true; clearInterval(gameInterval);
+        }
+        draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 300, 300);
+        // 地面
+        ctx.fillStyle = '#3b4b62';
+        ctx.fillRect(0, 250, 300, 50);
+        // 恐龙 (像素风)
+        ctx.fillStyle = '#a3e635';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#84cc16';
+        ctx.fillRect(20, dinoY, 28, 28);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(48, dinoY+6, 8, 8);
+        ctx.shadowBlur = 0;
+        // 仙人掌
+        ctx.fillStyle = '#4ade80';
+        ctx.fillRect(cactusX, 220, 12, 30);
+        ctx.fillRect(cactusX-6, 210, 6, 12);
+        ctx.fillRect(cactusX+12, 210, 6, 12);
+        if (gameOver) {
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = 'bold 22px sans-serif';
+          ctx.fillText('☠️', 120, 150);
+        }
+      }
+
+      function jump() {
+        if (gameOver) return;
+        if (dinoY >= 225) {
+          velocity = jumpPower;
+        }
+      }
+
+      function updateScore() { scoreSpan.textContent = `🏃 ${score}`; }
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Space') { e.preventDefault(); jump(); }
+      });
+      canvas.addEventListener('click', jump);
+
+      restartBtn.addEventListener('click', () => { clearInterval(gameInterval); init(); });
+      init();
+    })();
+
+    // ----- 4. Edge冲浪 (简化版) -----
+    (function surfGame() {
+      const { canvas, ctx } = getCanvasCtx('surfCanvas');
+      const scoreSpan = document.getElementById('surfScore');
+      const restartBtn = document.getElementById('surfRestart');
+
+      let playerX, obstacleX, obstacleY, score, gameOver, gameInterval;
+
+      function init() {
+        playerX = 130; obstacleX = 280; obstacleY = 80;
+        score = 0; gameOver = false;
+        updateScore();
+        clearInterval(gameInterval);
+        gameInterval = setInterval(update, 40);
+        draw();
+      }
+
+      function update() {
+        if (gameOver) return;
+        obstacleX -= 5;
+        if (obstacleX < -30) {
+          obstacleX = 280;
+          obstacleY = 40 + Math.random() * 180;
+          score++;
+          updateScore();
+        }
+        // 碰撞 (简单)
+        if (obstacleX < playerX+28 && obstacleX+28 > playerX && obstacleY < 110 && obstacleY+28 > 70) {
+          gameOver = true; clearInterval(gameInterval);
+        }
+        draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 300, 300);
+        // 海浪效果
+        ctx.fillStyle = '#2563eb';
+        for (let i=0; i<10; i++) {
+          ctx.globalAlpha = 0.2 + i*0.04;
+          ctx.fillRect(0, 30+i*22, 300, 8);
+        }
+        ctx.globalAlpha = 1;
+        // 冲浪者
+        ctx.fillStyle = '#facc15';
+        ctx.shadowBlur = 16; ctx.shadowColor = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(playerX+14, 80, 16, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(playerX+6, 96, 16, 20);
+        ctx.shadowBlur = 0;
+        // 障碍 (礁石)
+        ctx.fillStyle = '#f87171';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#ef4444';
+        ctx.fillRect(obstacleX, obstacleY, 28, 28);
+        ctx.shadowBlur = 0;
+        if (gameOver) {
+          ctx.fillStyle = '#fef9c3';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.fillText('💥', 120, 150);
+        }
+      }
+
+      function updateScore() { scoreSpan.textContent = `🌊 ${score}`; }
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); playerX = Math.max(0, playerX-15); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); playerX = Math.min(272, playerX+15); }
+      });
+
+      restartBtn.addEventListener('click', () => { clearInterval(gameInterval); init(); });
+      init();
+    })();
+
+  })();
+</script>
 </body>
 </html>
