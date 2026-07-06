@@ -1,375 +1,72 @@
+<?php
+$logFile = 'sms_log.txt';
+$maxMessages = 20; // 最多显示的消息数量
+
+// 处理清空日志的请求
+if (isset($_POST['clear_log'])) {
+    file_put_contents($logFile, '');
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// 如果收到GET请求
+if (!empty($_GET['content'])) {
+    $timestamp = date('Y-m-d H:i:s');
+    $content = $_GET['content'];
+    $logEntry = "$timestamp|$content\n";
+    file_put_contents($logFile, $logEntry, FILE_APPEND);
+}
+
+// 读取日志文件
+$messages = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$messages = array_reverse($messages);
+$messages = array_slice($messages, 0, $maxMessages);
+?>
+
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ikun01017 · 霓虹幻境</title>
-  <!-- 清爽图标库 (Font Awesome) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    /* 全局重置 + 字体 */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 20% 30%, #0b0e1a, #020304);
-      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      padding: 1.5rem;
-      /* 细微动态光晕 */
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* 背景装饰光晕 (动态) */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 70% 10%, rgba(255, 70, 200, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 10% 80%, rgba(0, 200, 255, 0.06) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-      animation: ambientGlow 12s ease-in-out infinite alternate;
-    }
-
-    @keyframes ambientGlow {
-      0% { opacity: 0.6; transform: scale(1); }
-      100% { opacity: 1; transform: scale(1.1); }
-    }
-
-    /* 主卡片 — 毛玻璃 + 霓虹边框 */
-    .glass-card {
-      position: relative;
-      z-index: 10;
-      max-width: 720px;
-      width: 100%;
-      padding: 3.5rem 3rem;
-      background: rgba(12, 16, 30, 0.55);
-      backdrop-filter: blur(14px) saturate(180%);
-      -webkit-backdrop-filter: blur(14px) saturate(180%);
-      border-radius: 64px 24px 64px 24px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 
-        0 30px 60px -20px rgba(0, 0, 0, 0.8),
-        0 0 0 1px rgba(255, 100, 200, 0.2) inset,
-        0 0 40px rgba(200, 80, 255, 0.15);
-      transition: all 0.3s ease;
-      text-align: center;
-      transform: rotate(0.5deg) scale(1);
-    }
-
-    .glass-card:hover {
-      transform: rotate(0deg) scale(1.01);
-      border-color: rgba(255, 120, 220, 0.3);
-      box-shadow: 
-        0 40px 80px -20px #000000cc,
-        0 0 0 2px rgba(255, 100, 200, 0.3) inset,
-        0 0 60px rgba(200, 80, 255, 0.25);
-    }
-
-    /* 头像/LOGO 区域 */
-    .logo-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.8rem;
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
-      padding: 0.6rem 1.6rem 0.6rem 1.2rem;
-      border-radius: 80px;
-      border: 1px solid rgba(255, 200, 255, 0.15);
-      backdrop-filter: blur(4px);
-      box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.5);
-    }
-
-    .logo-badge i {
-      font-size: 2.2rem;
-      margin-right: 10px;
-      color: #ff7bcf;
-      text-shadow: 0 0 20px #ff3cac, 0 0 60px #ff3cac40;
-      filter: drop-shadow(0 0 6px #ff3cac);
-    }
-
-    .logo-badge span {
-      font-weight: 300;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, #f0e8ff, #c8b6ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-size: 1.2rem;
-      text-transform: uppercase;
-      font-weight: 400;
-    }
-
-    /* 主标题 — 动态霓虹 */
-    .neon-title {
-      font-size: clamp(3.4rem, 12vw, 5.6rem);
-      font-weight: 800;
-      letter-spacing: 4px;
-      margin: 0.3rem 0 0.6rem 0;
-      line-height: 1.1;
-      background: linear-gradient(135deg, #ffe6f0, #ff9ed9, #b794f4, #6dd5fa);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: gradientShift 8s ease-in-out infinite alternate;
-      text-shadow: 0 0 30px rgba(255, 100, 200, 0.2);
-      filter: drop-shadow(0 0 20px rgba(255, 0, 200, 0.15));
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* 副标题 / 标语 */
-    .sub-message {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 1.2rem 0 2rem 0;
-      color: rgba(220, 210, 255, 0.75);
-      font-weight: 300;
-      font-size: 1.1rem;
-      letter-spacing: 2px;
-      border-top: 1px solid rgba(255, 255, 255, 0.03);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      padding: 0.8rem 0;
-    }
-
-    .sub-message i {
-      color: #f8a4d8;
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-
-    .sub-message .highlight {
-      background: linear-gradient(120deg, #fa8ec4, #b47cf5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 500;
-    }
-
-    /* 装饰分割线 */
-    .divider-custom {
-      width: 120px;
-      height: 2px;
-      margin: 1.5rem auto 1.8rem auto;
-      background: linear-gradient(90deg, transparent, #ff7bcf, #a882ff, transparent);
-      border-radius: 4px;
-      opacity: 0.6;
-    }
-
-    /* 社交/信息组 */
-    .info-grid {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 1.2rem 2.2rem;
-      margin: 2rem 0 1.2rem 0;
-    }
-
-    .info-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.02);
-      padding: 0.4rem 1.2rem 0.4rem 0.8rem;
-      border-radius: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(4px);
-      transition: all 0.25s;
-      color: #cbc3e6;
-      font-weight: 300;
-      font-size: 0.95rem;
-      letter-spacing: 0.5px;
-    }
-
-    .info-item i {
-      font-size: 1.2rem;
-      width: 28px;
-      text-align: center;
-      color: #cf9eff;
-      filter: drop-shadow(0 0 6px rgba(190, 120, 255, 0.2));
-    }
-
-    .info-item:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 200, 255, 0.2);
-      transform: translateY(-2px);
-      color: #f0ecff;
-      box-shadow: 0 8px 25px -12px #000000aa;
-    }
-
-    .info-item:hover i {
-      color: #ff9fda;
-    }
-
-    /* 底部 CTA 装饰 */
-    .footer-note {
-      margin-top: 2.2rem;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      font-size: 0.8rem;
-      color: rgba(180, 170, 210, 0.4);
-      letter-spacing: 3px;
-      font-weight: 300;
-      border-top: 1px solid rgba(255, 255, 255, 0.02);
-      padding-top: 1.8rem;
-    }
-
-    .footer-note i {
-      color: #ff7bcf;
-      opacity: 0.3;
-      font-size: 0.7rem;
-    }
-
-    /* 响应式修正 */
-    @media (max-width: 500px) {
-      .glass-card {
-        padding: 2.5rem 1.2rem;
-        border-radius: 40px 16px 40px 16px;
-      }
-
-      .logo-badge {
-        padding: 0.4rem 1rem 0.4rem 0.8rem;
-      }
-
-      .logo-badge i {
-        font-size: 1.6rem;
-      }
-
-      .info-grid {
-        gap: 0.7rem;
-      }
-
-      .info-item {
-        padding: 0.2rem 0.8rem 0.2rem 0.6rem;
-        font-size: 0.8rem;
-      }
-
-      .sub-message {
-        font-size: 0.9rem;
-        flex-direction: column;
-        gap: 6px;
-      }
-    }
-
-    /* 额外的点缀 — 浮动粒子 (纯CSS) */
-    .glow-dot {
-      position: fixed;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 180, 240, 0.2), transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-      animation: floatDot 18s infinite alternate ease-in-out;
-    }
-
-    .glow-dot:nth-child(1) {
-      width: 300px;
-      height: 300px;
-      top: -80px;
-      left: -80px;
-      background: radial-gradient(circle, rgba(200, 100, 255, 0.12), transparent 70%);
-      animation-duration: 22s;
-    }
-
-    .glow-dot:nth-child(2) {
-      width: 400px;
-      height: 400px;
-      bottom: -120px;
-      right: -120px;
-      background: radial-gradient(circle, rgba(255, 70, 200, 0.08), transparent 70%);
-      animation-duration: 26s;
-      animation-delay: -5s;
-    }
-
-    @keyframes floatDot {
-      0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
-      100% { transform: translate(40px, -30px) scale(1.2); opacity: 0.9; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; }
+        .message { background-color: white; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+        .time { color: #333; }
+        .sender {color: #333;  }
+        .content { color: #333; }
+        .button-container { margin-top: 20px; }
+        button { padding: 10px 20px; margin-right: 10px; }
+    </style>
+    <script>
+        function refreshPage() {
+            location.reload();
+        }
+        function confirmClear() {
+            return confirm("确定要清空所有日志吗？");
+        }
+    </script>
 </head>
 <body>
-  <!-- 背景装饰光点 -->
-  <div class="glow-dot"></div>
-  <div class="glow-dot"></div>
-
-  <!-- 主卡片 -->
-  <main class="glass-card">
-    <!-- 品牌标识 -->
-    <div class="logo-badge">
-      <i class="fas fa-crown"></i>
-      <span>Ikun · 01017</span>
+    <h1>Message</h1>
+    <?php foreach ($messages as $message): ?>
+        <?php 
+        list($time, $content) = explode('|', $message, 2);
+        $lines = explode("\n", $content);
+        $sender = $lines[0] ?? '';
+        $messageContent = $lines[1] ?? '';
+        ?>
+        <div class="message">
+            <div class="time"><?= htmlspecialchars($time) ?></div>
+            <div class="sender"><?= htmlspecialchars($sender) ?></div>
+            <div class="content"><?= nl2br(htmlspecialchars($messageContent)) ?></div>
+        </div>
+    <?php endforeach; ?>
+    <div class="button-container">
+        <button onclick="refreshPage()">刷新</button>
+        <form method="post" onsubmit="return confirmClear()" style="display: inline;">
+            <button type="submit" name="clear_log">清空日志</button>
+        </form>
     </div>
-
-    <!-- 核心标题 (原 Hello,Word 升级) -->
-    <h1 class="neon-title">Hello, World</h1>
-
-    <!-- 俏皮副标题 -->
-    <div class="sub-message">
-      <i class="fas fa-code"></i>
-      <span>✦  <span class="highlight">Ikun01017</span>  ✦</span>
-      <i class="fas fa-meteor"></i>
-      <span style="opacity:0.5; font-weight:100;">|</span>
-      <i class="fas fa-star" style="color: #f7c948;"></i>
-      <span>霓虹幻境</span>
-    </div>
-
-    <!-- 分割线 -->
-    <div class="divider-custom"></div>
-
-    <!-- 信息网格 (模拟个人标签) -->
-    <div class="info-grid">
-      <span class="info-item">
-        <i class="fas fa-user-astronaut"></i> 探索者
-      </span>
-      <span class="info-item">
-        <i class="fas fa-palette"></i> 创意工坊
-      </span>
-      <span class="info-item">
-        <i class="fas fa-cloud-moon"></i> 夜行
-      </span>
-      <span class="info-item">
-        <i class="fas fa-bolt"></i> 01017
-      </span>
-    </div>
-
-    <!-- 底部脚标 (保留一点原味) -->
-    <div class="footer-note">
-      <i class="fas fa-circle"></i>
-      <span>✦  aesthetic code  ✦</span>
-      <i class="fas fa-circle"></i>
-    </div>
-
-    <!-- 微交互: 原 <boyd> 修复为 body, 但这里保留原注释的趣味 -->
-    <div style="display: none;">曾经的 <boyd> 已优雅重生</div>
-  </main>
-
-  <!-- 可选的 tiny 脚本 (仅用于控制台趣味) -->
-  <script>
-    (function() {
-      console.log('%c✦ Ikun01017 · 霓虹幻境 ✦', 'font-size:18px; font-weight:bold; color:#ff8ed4; text-shadow: 0 0 12px #ff3cac;');
-      console.log('%c“Hello, World” 已升级为视觉诗篇', 'color: #b8a5ff; font-style: italic;');
-    })();
-  </script>
 </body>
 </html>
