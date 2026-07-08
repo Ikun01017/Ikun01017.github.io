@@ -1,773 +1,92 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ikun01017 · 霓虹乐园</title>
-  <!-- Font Awesome 6 (免费) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    /* ===== 全局重置 & 基础 ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      background: radial-gradient(circle at 20% 20%, #0b0e1a, #020304);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      padding: 2rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* 背景动态光晕 */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 70% 10%, rgba(255, 70, 200, 0.07) 0%, transparent 50%),
-        radial-gradient(circle at 10% 80%, rgba(0, 200, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-      animation: ambientGlow 14s ease-in-out infinite alternate;
-    }
-    @keyframes ambientGlow {
-      0% { opacity: 0.6; transform: scale(1); }
-      100% { opacity: 1; transform: scale(1.08); }
-    }
-
-    /* ===== 通用毛玻璃卡片 ===== */
-    .glass {
-      background: rgba(12, 16, 30, 0.55);
-      backdrop-filter: blur(14px) saturate(180%);
-      -webkit-backdrop-filter: blur(14px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 40px 16px 40px 16px;
-      box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 100, 200, 0.15) inset;
-      transition: all 0.3s ease;
-    }
-
-    /* ===== 顶部品牌卡 (精简) ===== */
-    .brand-card {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 820px;
-      padding: 1.6rem 2.4rem;
-      margin-bottom: 2.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .brand-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .brand-left i {
-      font-size: 2.2rem;
-      color: #ff7bcf;
-      filter: drop-shadow(0 0 16px #ff3cac60);
-    }
-
-    .brand-left h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #ffe6f0, #b794f4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 1px;
-    }
-
-    .brand-left .sub {
-      font-size: 0.8rem;
-      color: rgba(200, 180, 240, 0.5);
-      letter-spacing: 2px;
-      margin-left: 0.2rem;
-      -webkit-text-fill-color: rgba(200, 180, 240, 0.5);
-    }
-
-    .brand-right {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      color: rgba(200, 190, 230, 0.5);
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-    }
-
-    .brand-right i {
-      color: #ff7bcf;
-      opacity: 0.5;
-    }
-
-    /* ===== 游戏区域 ===== */
-    .game-section {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 820px;
-      padding: 2rem 2rem 2.2rem;
-      margin-bottom: 2.2rem;
-    }
-
-    .game-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.8rem 1.5rem;
-      margin-bottom: 1.8rem;
-    }
-
-    .game-header h2 {
-      font-size: 1.2rem;
-      font-weight: 400;
-      color: rgba(220, 210, 255, 0.7);
-      letter-spacing: 2px;
-    }
-
-    .game-header h2 i {
-      color: #ff7bcf;
-      margin-right: 8px;
-    }
-
-    .game-stats {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      font-size: 0.9rem;
-      color: rgba(200, 190, 230, 0.6);
-    }
-
-    .game-stats span {
-      background: rgba(255, 255, 255, 0.03);
-      padding: 0.2rem 1rem;
-      border-radius: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .game-stats .num {
-      color: #f0e8ff;
-      font-weight: 600;
-    }
-
-    .btn-reset {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 200, 255, 0.12);
-      color: #cbc3e6;
-      padding: 0.3rem 1.4rem;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.25s;
-      backdrop-filter: blur(4px);
-      letter-spacing: 1px;
-    }
-
-    .btn-reset:hover {
-      background: rgba(255, 120, 200, 0.12);
-      border-color: rgba(255, 120, 200, 0.3);
-      color: #fff;
-      box-shadow: 0 0 30px rgba(255, 100, 200, 0.1);
-      transform: scale(1.02);
-    }
-
-    /* 游戏网格 */
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.8rem;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    .card {
-      aspect-ratio: 1 / 1;
-      background: rgba(30, 24, 50, 0.6);
-      border-radius: 20px 8px 20px 8px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.4rem;
-      color: #d4c8ff;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.6);
-      position: relative;
-      user-select: none;
-    }
-
-    .card.flipped {
-      background: rgba(50, 40, 80, 0.5);
-      border-color: rgba(255, 200, 255, 0.15);
-      box-shadow: 0 0 30px rgba(200, 100, 255, 0.08);
-      transform: scale(1.02);
-    }
-
-    .card.matched {
-      background: rgba(40, 70, 60, 0.25);
-      border-color: rgba(100, 255, 200, 0.15);
-      box-shadow: 0 0 40px rgba(100, 255, 200, 0.05);
-      cursor: default;
-      opacity: 0.6;
-      transform: scale(0.92);
-      pointer-events: none;
-    }
-
-    .card .icon-front {
-      display: none;
-    }
-    .card.flipped .icon-front,
-    .card.matched .icon-front {
-      display: block;
-    }
-    .card .icon-back {
-      display: block;
-      font-size: 1.8rem;
-      color: rgba(255, 200, 240, 0.2);
-      transition: all 0.3s;
-    }
-    .card.flipped .icon-back,
-    .card.matched .icon-back {
-      display: none;
-    }
-
-    .card:hover:not(.flipped):not(.matched) {
-      border-color: rgba(255, 200, 255, 0.15);
-      transform: scale(1.03);
-      box-shadow: 0 0 30px rgba(200, 100, 255, 0.06);
-    }
-
-    /* 胜利信息 */
-    .win-message {
-      text-align: center;
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      color: #b8a5ff;
-      letter-spacing: 2px;
-      opacity: 0;
-      transition: all 0.6s ease;
-      height: 2rem;
-    }
-    .win-message.show {
-      opacity: 1;
-    }
-    .win-message i {
-      color: #ffd966;
-      margin: 0 6px;
-    }
-
-    /* ===== 200 图标展览 ===== */
-    .expo-section {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 820px;
-      padding: 2rem 1.8rem 2.5rem;
-    }
-
-    .expo-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-bottom: 1.6rem;
-    }
-
-    .expo-header h2 {
-      font-size: 1.2rem;
-      font-weight: 400;
-      color: rgba(220, 210, 255, 0.7);
-      letter-spacing: 2px;
-    }
-
-    .expo-header h2 i {
-      color: #ff7bcf;
-      margin-right: 10px;
-    }
-
-    .expo-header .count-badge {
-      background: rgba(255, 255, 255, 0.04);
-      padding: 0.2rem 1.2rem;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      color: rgba(200, 190, 230, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    /* 图标网格 */
-    .icon-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
-      max-height: 560px;
-      overflow-y: auto;
-      padding: 0.4rem 0.2rem 0.8rem;
-      scroll-behavior: smooth;
-    }
-
-    .icon-grid::-webkit-scrollbar {
-      width: 4px;
-    }
-    .icon-grid::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 10px;
-    }
-    .icon-grid::-webkit-scrollbar-thumb {
-      background: rgba(255, 120, 200, 0.2);
-      border-radius: 10px;
-    }
-
-    .icon-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 72px;
-      height: 72px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 16px 6px 16px 6px;
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      transition: all 0.2s ease;
-      padding: 0.2rem;
-      cursor: default;
-    }
-
-    .icon-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 200, 255, 0.08);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px -12px rgba(0, 0, 0, 0.7);
-    }
-
-    .icon-item i {
-      font-size: 1.5rem;
-      color: #d4c8ff;
-      transition: all 0.2s;
-      margin-bottom: 2px;
-    }
-
-    .icon-item:hover i {
-      color: #ffb0dd;
-      text-shadow: 0 0 20px rgba(255, 100, 200, 0.15);
-    }
-
-    .icon-item .icon-name {
-      font-size: 0.48rem;
-      color: rgba(180, 170, 210, 0.3);
-      letter-spacing: 0.3px;
-      text-align: center;
-      line-height: 1.2;
-      max-width: 64px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .icon-item:hover .icon-name {
-      color: rgba(200, 190, 230, 0.6);
-    }
-
-    /* ===== 响应式 ===== */
-    @media (max-width: 640px) {
-      body {
-        padding: 1rem 0.8rem;
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.46875" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="王二火大" />
+    <title>王二火大-联机对战平台</title>
+    <meta
+      name="keywords"
+      content="王二火大, 红色警戒下载, 如何玩红警, webra2, 苹果如何玩红警, 平板上如何玩红警, 手机上如何玩红警, win7如何玩红警, win10如何玩红警, win11如何玩红警, 红警, 红警2, 红色警戒2, 在线游戏, 游戏平台，对战平台，战网, 红色警戒3, 红警3, RA2, RA2WEB"
+    />
+    <meta
+      name="description"
+      content="王二火大支持在网页上游玩经典的红色井界游戏，无需下载安装，随时随地在手机、电脑、平板甚至手表上畅玩。提供多种游戏模式和地图，与全球玩家实时对战。"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/res/pwa/icon-192.png" />
+    <script>
+      var browserSupported = true;
+      try {
+        eval("'use strict'; class C { async test(...args) { let spread = {...({a: 2})} }}");
+        var canvas = document.createElement('canvas');
+        browserSupported = !!(
+          window.WebGLRenderingContext &&
+          (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) &&
+          new Blob(['test'], { type: 'text/plain' }).arrayBuffer
+        );
+      } catch (e) {
+        browserSupported = false;
       }
-      .brand-card {
-        padding: 1.2rem 1.2rem;
-        flex-direction: column;
-        align-items: flex-start;
+      if (!browserSupported) {
+        alert('Browser not supported.\n\nPlease download the latest Google Chrome, Mozilla Firefox or Microsoft Edge.');
       }
-      .brand-left h1 {
-        font-size: 1.2rem;
+    </script>
+    <link href="/res/fonts/fonts.css?v=0.82.9-r352a2fa" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css?v=0.82.9-r352a2fa" type="text/css" />
+    <style>
+      #ra2web-root {
+        position: relative;
       }
-      .game-section {
-        padding: 1.2rem 0.8rem;
-      }
-      .game-grid {
-        gap: 0.5rem;
-        max-width: 360px;
-      }
-      .card {
-        font-size: 1.6rem;
-        border-radius: 14px 5px 14px 5px;
-      }
-      .card .icon-back {
-        font-size: 1.2rem;
-      }
-      .expo-section {
-        padding: 1.2rem 0.6rem;
-      }
-      .icon-item {
-        width: 58px;
-        height: 58px;
-      }
-      .icon-item i {
-        font-size: 1.2rem;
-      }
-      .icon-item .icon-name {
-        font-size: 0.4rem;
-      }
-      .game-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.4rem;
-      }
-      .game-stats {
-        flex-wrap: wrap;
-        gap: 0.4rem 0.8rem;
-      }
-      .expo-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.3rem;
-      }
-    }
-
-    @media (max-width: 420px) {
-      .icon-item {
-        width: 48px;
-        height: 48px;
-      }
-      .icon-item i {
-        font-size: 1rem;
-      }
-      .icon-item .icon-name {
-        display: none;
-      }
-      .game-grid {
-        gap: 0.4rem;
-        max-width: 300px;
-      }
-      .card {
-        font-size: 1.2rem;
-        border-radius: 10px 4px 10px 4px;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- ===== 顶部品牌卡 ===== -->
-  <header class="brand-card glass">
-    <div class="brand-left">
-      <i class="fas fa-crown"></i>
-      <h1>Ikun01017 <span class="sub">· 霓虹乐园</span></h1>
-    </div>
-    <div class="brand-right">
-      <i class="fas fa-gamepad"></i>
-      <span>记忆翻牌</span>
-      <i class="fas fa-circle" style="font-size:0.3rem; opacity:0.2;"></i>
-      <i class="fas fa-images"></i>
-      <span>200 图标展</span>
-    </div>
-  </header>
-
-  <!-- ===== 游戏区域 ===== -->
-  <section class="game-section glass">
-    <div class="game-header">
-      <h2><i class="fas fa-puzzle-piece"></i> 图标记忆 · 翻牌配对</h2>
-      <div class="game-stats">
-        <span>步数 <span class="num" id="moves">0</span></span>
-        <span>配对 <span class="num" id="pairs">0</span> / 8</span>
-        <button class="btn-reset" id="resetGame"><i class="fas fa-rotate-right"></i> 重来</button>
-      </div>
-    </div>
-
-    <div class="game-grid" id="gameGrid"></div>
-    <div class="win-message" id="winMessage">
-      <i class="fas fa-trophy"></i> 太棒了！全部配对成功！ <i class="fas fa-star"></i>
-    </div>
-  </section>
-
-  <!-- ===== 200 图标展览 ===== -->
-  <section class="expo-section glass">
-    <div class="expo-header">
-      <h2><i class="fas fa-th-large"></i> 图标画廊 · 200 枚</h2>
-      <span class="count-badge"><i class="fas fa-hashtag"></i> 200 icons</span>
-    </div>
-    <div class="icon-grid" id="iconGrid"></div>
-  </section>
-
-  <!-- ========================== JavaScript ========================== -->
-  <script>
-    (function() {
-      'use strict';
-
-      // ============================================================
-      // 1. 200 个 Font Awesome 图标名称 (fas + far 混合)
-      // ============================================================
-      const ICON_NAMES = [
-        // 基础 / 通用
-        'home', 'user', 'heart', 'star', 'cog', 'search', 'envelope', 'bell',
-        'calendar', 'clock', 'map', 'location-dot', 'phone', 'mobile-screen',
-        'camera', 'image', 'video', 'music', 'headphones', 'microphone',
-        'book', 'graduation-cap', 'pencil', 'eraser', 'paintbrush', 'palette',
-        'code', 'terminal', 'laptop', 'desktop', 'tablet', 'print',
-        'folder', 'folder-open', 'file', 'file-lines', 'copy', 'paste',
-        'clipboard', 'list', 'check', 'xmark', 'plus', 'minus', 'times',
-        'arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', 'sync',
-        'lock', 'unlock', 'key', 'shield', 'eye', 'eye-slash',
-        'tag', 'tags', 'cart-shopping', 'bag-shopping', 'credit-card',
-        'dollar-sign', 'chart-simple', 'chart-pie', 'chart-bar', 'trend-up',
-        // 媒体 & 娱乐
-        'play', 'pause', 'stop', 'forward', 'backward', 'step-forward',
-        'step-backward', 'circle-play', 'circle-pause', 'circle-stop',
-        'film', 'clapperboard', 'ticket', 'popcorn', 'gamepad',
-        'dice', 'dice-d6', 'chess', 'chess-queen', 'chess-king',
-        // 自然 & 食物
-        'sun', 'moon', 'cloud', 'cloud-rain', 'snowflake', 'wind',
-        'leaf', 'tree', 'seedling', 'flower', 'apple', 'lemon',
-        'coffee', 'mug-saucer', 'wine-glass', 'beer-mug-empty', 'utensils',
-        // 交通 & 建筑
-        'car', 'truck', 'bus', 'bicycle', 'motorcycle', 'plane',
-        'ship', 'anchor', 'rocket', 'helicopter', 'train', 'subway',
-        'building', 'city', 'house-chimney', 'store', 'hospital',
-        // 商业 & 办公
-        'briefcase', 'business-time', 'handshake', 'hand-holding-dollar',
-        'users', 'user-plus', 'user-minus', 'user-group', 'id-card',
-        'address-card', 'badge', 'certificate', 'award', 'trophy',
-        // 科技 & 工具
-        'wifi', 'bluetooth', 'signal', 'satellite', 'microchip',
-        'battery-full', 'battery-half', 'battery-quarter', 'plug',
-        'tools', 'wrench', 'screwdriver-wrench', 'hammer', 'scissors',
-        // 医疗 & 健康
-        'heart-pulse', 'stethoscope', 'pill', 'syringe', 'mask',
-        'weight-scale', 'person-running', 'person-walking', 'dumbbell',
-        // 服装 & 生活
-        'hat-cowboy', 'glasses', 'sunglasses', 'boot', 'sock', 'shirt',
-        'ring', 'gem', 'crown', 'wand-magic-sparkles', 'fire', 'water',
-        // 符号 & 标志
-        'flag', 'flag-checkered', 'peace', 'skull', 'ghost', 'robot',
-        'alien', 'cat', 'dog', 'frog', 'crow', 'dove', 'fish',
-        'paw', 'bone', 'egg', 'ice-cream', 'cake-candles', 'cookie',
-        // 运动 & 户外
-        'football', 'basketball', 'volleyball', 'baseball', 'golf-ball',
-        'bowling-ball', 'skiing', 'snowboarding', 'swimmer', 'bicycle',
-        // 节日 & 特殊
-        'gift', 'balloons', 'party-horn', 'confetti', 'sparkles',
-        'star-of-life', 'infinity', 'heart-crack', 'face-smile', 'face-frown',
-        'face-angry', 'face-laugh', 'face-surprise', 'face-kiss', 'face-tired',
-        // 更多补充
-        'anchor', 'archway', 'at', 'atom', 'award', 'barcode', 'bath',
-        'bed', 'bezier-curve', 'bicycle', 'binoculars', 'bolt', 'bomb',
-        'book-open', 'bookmark', 'border-all', 'box', 'box-open', 'brain',
-        'bug', 'bullhorn', 'bullseye', 'calculator', 'calendar-check',
-        'calendar-day', 'calendar-week', 'camera-retro', 'campground',
-        'candy-cane', 'carrot', 'cat', 'chair', 'chalkboard', 'child',
-        'church', 'circle', 'clipboard-list', 'cloud-moon', 'cloud-sun',
-        'cog', 'coins', 'comment', 'comment-dots', 'compass', 'cube',
-        'cubes', 'cut', 'database', 'deer', 'dog', 'dragon', 'draw-polygon',
-        'dumbbell', 'earth-asia', 'earth-europe', 'earth-americas',
-        'egg', 'eject', 'ellipsis-vertical', 'envelope-open-text',
-        'eraser', 'exchange', 'exclamation-triangle', 'expand', 'eye-dropper',
-        'feather', 'feather-pointed', 'fingerprint', 'fire-extinguisher',
-        'fish', 'flag', 'flask', 'floppy-disk', 'futbol', 'gauge-high',
-        'gavel', 'gear', 'gift', 'globe', 'guitar', 'hand', 'hand-peace',
-        'hand-sparkles', 'handshake', 'hashtag', 'hat-wizard', 'headset',
-        'heart', 'highlighter', 'hill-avalanche', 'hill-rockslide',
-        'history', 'hockey-puck', 'holly-berry', 'home', 'horse-head',
-        'hot-tub', 'hotel', 'hourglass', 'house-chimney', 'ice-cream',
-        'igloo', 'image', 'inbox', 'indent', 'industry', 'infinity',
-        'info', 'italic', 'key', 'keyboard', 'lamp', 'landmark', 'language',
-        'laptop', 'laptop-code', 'laugh', 'layer-group', 'leaf', 'life-ring',
-        'lightbulb', 'link', 'list-check', 'list-ol', 'list-ul', 'location-dot',
-        'lock', 'lock-open', 'magic', 'magnet', 'magnifying-glass', 'map-location',
-        'map-pin', 'mars', 'mars-double', 'mask', 'medal', 'memory', 'menorah',
-        'mercury', 'meteor', 'microphone', 'microphone-slash', 'microscope',
-        'mill-sign', 'minimize', 'minus', 'mobile-screen', 'money-bill',
-        'money-bill-wave', 'monument', 'moon', 'mortar-pestle', 'mosque',
-        'motorcycle', 'mountain', 'mouse', 'mug-hot', 'music', 'network-wired',
-        'neuter', 'newspaper', 'not-equal', 'notes-medical', 'object-ungroup',
-        'object-group', 'octagon', 'oil-can', 'om', 'otter', 'outdent',
-        'paint-roller', 'palette', 'panorama', 'paper-plane', 'paperclip',
-        'parachute-box', 'paragraph', 'parking', 'passport', 'pastafarianism'
-      ];
-
-      // 去重并截取前200个 (保证刚好200)
-      const unique = [...new Set(ICON_NAMES)];
-      const ICONS200 = unique.slice(0, 200);
-
-      // ============================================================
-      // 2. 记忆翻牌游戏
-      // ============================================================
-      const gridEl = document.getElementById('gameGrid');
-      const movesEl = document.getElementById('moves');
-      const pairsEl = document.getElementById('pairs');
-      const winMessageEl = document.getElementById('winMessage');
-      const resetBtn = document.getElementById('resetGame');
-
-      let cards = [];
-      let flippedCards = [];
-      let matchedPairs = 0;
-      let moves = 0;
-      let lockBoard = false;
-      let gameIcons = [];
-
-      // 从200个图标中随机选8个不同图标
-      function pickGameIcons() {
-        const shuffled = [...ICONS200].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 8);
-      }
-
-      // 洗牌
-      function shuffleArray(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }
-
-      // 初始化游戏
-      function initGame() {
-        gameIcons = pickGameIcons();
-        // 每个图标出现两次
-        let deck = [...gameIcons, ...gameIcons];
-        deck = shuffleArray(deck);
-        cards = deck.map((icon, index) => ({
-          id: index,
-          icon: icon,
-          flipped: false,
-          matched: false,
-        }));
-        flippedCards = [];
-        matchedPairs = 0;
-        moves = 0;
-        lockBoard = false;
-        updateStats();
-        winMessageEl.classList.remove('show');
-        renderGrid();
-      }
-
-      function renderGrid() {
-        gridEl.innerHTML = '';
-        cards.forEach((card, index) => {
-          const div = document.createElement('div');
-          div.className = 'card';
-          if (card.flipped) div.classList.add('flipped');
-          if (card.matched) div.classList.add('matched');
-          div.dataset.index = index;
-
-          // 背面 (问号/星星)
-          const back = document.createElement('span');
-          back.className = 'icon-back';
-          back.innerHTML = '<i class="fas fa-star"></i>';
-
-          // 正面 (图标)
-          const front = document.createElement('span');
-          front.className = 'icon-front';
-          front.innerHTML = `<i class="fas fa-${card.icon}"></i>`;
-
-          div.appendChild(back);
-          div.appendChild(front);
-          div.addEventListener('click', () => onCardClick(index));
-          gridEl.appendChild(div);
-        });
-      }
-
-      function onCardClick(index) {
-        if (lockBoard) return;
-        const card = cards[index];
-        if (card.flipped || card.matched) return;
-        if (flippedCards.length === 2) return;
-
-        // 翻转
-        card.flipped = true;
-        flippedCards.push(index);
-        renderGrid();
-
-        if (flippedCards.length === 2) {
-          moves++;
-          updateStats();
-          lockBoard = true;
-          const idx1 = flippedCards[0];
-          const idx2 = flippedCards[1];
-          const card1 = cards[idx1];
-          const card2 = cards[idx2];
-
-          if (card1.icon === card2.icon) {
-            // 匹配成功
-            card1.matched = true;
-            card2.matched = true;
-            matchedPairs++;
-            flippedCards = [];
-            lockBoard = false;
-            renderGrid();
-            updateStats();
-            if (matchedPairs === 8) {
-              winMessageEl.classList.add('show');
-            }
-          } else {
-            // 不匹配，延迟翻回
-            setTimeout(() => {
-              card1.flipped = false;
-              card2.flipped = false;
-              flippedCards = [];
-              lockBoard = false;
-              renderGrid();
-            }, 700);
-          }
-        } else {
-          // 只翻了一张
-          lockBoard = false;
+      @media (max-height: 620px) {
+        body {
+          align-items: flex-start;
         }
       }
-
-      function updateStats() {
-        movesEl.textContent = moves;
-        pairsEl.textContent = matchedPairs;
+    </style>
+    <script>
+      window.__ra2webTransportMode = 'websocket-only';
+    </script>
+    <script type="module" crossorigin src="/assets/releases/0.82.9-r352a2fa/werhd.min.js"></script>
+  </head>
+  <body class="no-js">
+    <div id="loader-wrapper" style="display: none">
+      <div id="loader"></div>
+      <div id="loader-logo"></div>
+    </div>
+    <div id="ra2web-root"></div>
+    <script>
+      if (browserSupported) {
+        document.body.classList.remove('no-js');
+        setTimeout(() => {
+          let loader = document.getElementById('loader-wrapper');
+          if (loader) loader.style.display = '';
+        }, 2000);
       }
-
-      resetBtn.addEventListener('click', initGame);
-
-      // ============================================================
-      // 3. 200 图标展览
-      // ============================================================
-      const iconGridEl = document.getElementById('iconGrid');
-
-      function renderExpo() {
-        iconGridEl.innerHTML = '';
-        ICONS200.forEach(name => {
-          const item = document.createElement('div');
-          item.className = 'icon-item';
-          item.innerHTML = `
-            <i class="fas fa-${name}"></i>
-            <span class="icon-name">${name}</span>
-          `;
-          iconGridEl.appendChild(item);
-        });
+    </script>
+    <script src="/runtime/releases/0.82.9-r352a2fa/ra2web-helpers.js"></script>
+    <script src="/lib/three.min.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/three.shader-patch.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/three.octree.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/SimplexNoise.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/LightningStrike.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/TrailRenderer.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/SPE.min.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/three/SPE.patch.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/growingpacker.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/lzo1x.js?v=0.82.9-r352a2fa"></script>
+    <script src="/lib/fullscreen-api-polyfill.min.js?v=0.82.9-r352a2fa"></script>
+    <script>
+      if (browserSupported) {
+        let loader = document.getElementById('loader-wrapper');
+        if (loader) {
+          document.body.removeChild(loader);
+        }
       }
-
-      // ============================================================
-      // 4. 启动
-      // ============================================================
-      initGame();
-      renderExpo();
-
-      // 控制台提示
-      console.log('%c✦ Ikun01017 · 霓虹乐园 ✦', 'font-size:20px; font-weight:bold; color:#ff8ed4; text-shadow:0 0 20px #ff3cac;');
-      console.log(`%c🧩 记忆翻牌 · 200 图标展览`, 'color:#b8a5ff; font-size:14px;');
-      console.log(`%c📦 共 ${ICONS200.length} 个图标加载`, 'color:#b8a5ff;');
-
-    })();
-  </script>
-</body>
+    </script>
+  </body>
 </html>
